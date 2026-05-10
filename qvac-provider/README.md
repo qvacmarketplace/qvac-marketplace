@@ -47,7 +47,22 @@ Within 30 seconds, your node appears in the marketplace at [www.qvacmarketplace.
 | **Network** | Reachable from the public internet (Hyperswarm punches NAT, no port-forwarding needed) |
 | **OS** | Linux / WSL / macOS / Windows. Tested on WSL2 Ubuntu 24.04 |
 
-A consumer GPU helps with throughput but isn't required — quantized models run fine on CPU.
+A GPU helps with throughput but isn't required — quantized models run fine on CPU.
+
+### Linux system libraries
+
+On Ubuntu/Debian servers (including AWS, Lightsail, DigitalOcean), two system libraries must be present before `npm start` will work:
+
+```bash
+sudo apt-get install -y libatomic1 libvulkan1
+```
+
+| Library | Required by | Without it |
+|---------|-------------|-----------|
+| `libatomic1` | `rocksdb-native` (via corestore) | `Cannot open shared object file: libatomic.so.1` |
+| `libvulkan1` | `@qvac/llm-llamacpp` inference backend | `Cannot open shared object file: libvulkan.so.1` |
+
+Without a GPU, the Vulkan loader still satisfies the linker — inference automatically falls back to CPU.
 
 ---
 
@@ -215,10 +230,10 @@ Quote-channel rate-limit defaults: 10 quote requests per 10 seconds per peer (Ed
 For a persistent node, use a process manager:
 
 ```bash
-npm install -g pm2
-pm2 start "npm start" --name qvac-provider
-pm2 save
-pm2 startup
+sudo npm install -g pm2
+sudo pm2 start "npm start" --name qvac-provider --cwd /path/to/qvac-marketplace/qvac-provider
+sudo pm2 save
+sudo pm2 startup
 ```
 
 Or write a small systemd unit if you prefer. The provider is a long-lived stateless process — restart-safe as long as the DHT seed and keypair stay constant.
@@ -228,6 +243,12 @@ Logs go to stdout. With pm2: `pm2 logs qvac-provider`.
 ---
 
 ## Troubleshooting
+
+**`Cannot open shared object file: libatomic.so.1` or `libvulkan.so.1`**
+Install the required system libraries (Linux only):
+```bash
+sudo apt-get install -y libatomic1 libvulkan1
+```
 
 **Registration fails with "insufficient funds"**
 Airdrop more SOL: `solana airdrop 2 ~/.config/solana/provider.json --url devnet`. The faucet is rate-limited — rerun a few times if needed.
