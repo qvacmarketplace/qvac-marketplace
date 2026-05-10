@@ -12,7 +12,7 @@ import {
 } from "@solana/kit";
 // The generated client compiles as CJS under the root tsconfig; default import
 // is required in ESM context — named imports fail static analysis.
-import generatedClient from "../clients/js/src/generated/index.js";
+import generatedClient from "./clients/js/src/generated/index.js";
 const {
   getRegisterProviderInstructionAsync,
   getUpdateProviderInstructionAsync,
