@@ -4,11 +4,12 @@
   "type": "module",
   "description": "QVAC P2P Bridge — WebSocket server connecting browser to QVAC providers",
   "scripts": {
-    "start": "node --env-file-if-exists=.env ../node_modules/tsx/dist/cli.mjs bridge.js"
+    "start": "node --env-file-if-exists=.env node_modules/tsx/dist/cli.mjs bridge.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@qvac/sdk": "^0.10.2",
+    "@solana/kit": "^6.9.0",
     "bare-abort-controller": "^1.1.1",
     "bare-buffer": "^3.6.0",
     "bare-crypto": "^1.13.6",
@@ -36,7 +37,7 @@
     "llm-splitter": "^0.2.0",
     "pear-pipe": "^1.0.6",
     "tar-stream": "^3.2.0",
-    "ws": "^8.18.0",
-    "@solana/kit": "^6.9.0"
+    "tsx": "^4.21.0",
+    "ws": "^8.18.0"
   }
 }
