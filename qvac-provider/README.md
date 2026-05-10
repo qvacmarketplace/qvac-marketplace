@@ -51,16 +51,17 @@ A GPU helps with throughput but isn't required — quantized models run fine on 
 
 ### Linux system libraries
 
-On Ubuntu/Debian servers (including AWS, Lightsail, DigitalOcean), two system libraries must be present before `npm start` will work:
+On Ubuntu/Debian servers (including AWS, Lightsail, DigitalOcean), install the required system libraries before running `npm start`. See the [official QVAC SDK installation guide](https://docs.qvac.tether.io/sdk/getting-started/installation/) for full platform requirements.
 
 ```bash
-sudo apt-get install -y libatomic1 libvulkan1
+sudo apt-get install -y libatomic1 libvulkan1 g++-13
 ```
 
-| Library | Required by | Without it |
+| Package | Required by | Without it |
 |---------|-------------|-----------|
 | `libatomic1` | `rocksdb-native` (via corestore) | `Cannot open shared object file: libatomic.so.1` |
 | `libvulkan1` | `@qvac/llm-llamacpp` inference backend | `Cannot open shared object file: libvulkan.so.1` |
+| `g++-13` | Native addon compilation | Build errors during `npm install` |
 
 Without a GPU, the Vulkan loader still satisfies the linker — inference automatically falls back to CPU.
 
@@ -247,7 +248,7 @@ Logs go to stdout. With pm2: `pm2 logs qvac-provider`.
 **`Cannot open shared object file: libatomic.so.1` or `libvulkan.so.1`**
 Install the required system libraries (Linux only):
 ```bash
-sudo apt-get install -y libatomic1 libvulkan1
+sudo apt-get install -y libatomic1 libvulkan1 g++-13
 ```
 
 **Registration fails with "insufficient funds"**
