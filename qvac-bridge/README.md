@@ -49,6 +49,12 @@ cd qvac-marketplace/qvac-bridge
 npm install
 ```
 
+> **Mac / npm users:** if you see an `ERESOLVE` peer dependency error on install, run:
+> ```bash
+> npm install --legacy-peer-deps
+> ```
+> This is a known conflict between `bare-fetch` versions in `@qvac/sdk` and is safe to bypass.
+
 ### 2. Configure
 
 ```bash
