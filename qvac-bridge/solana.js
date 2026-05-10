@@ -15,8 +15,7 @@ import {
   partiallySignTransactionMessageWithSigners,
   sendAndConfirmTransactionFactory,
 } from "@solana/kit";
-// CJS interop: generated client compiles as CJS under root tsconfig.
-import generatedClient from "./clients/js/src/generated/index.js";
+import * as generatedClient from "./clients/js/src/generated/index.js";
 const {
   getCreateJobInstructionAsync,
   getConsumerConfirmInstruction,
