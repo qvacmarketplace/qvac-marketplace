@@ -1,0 +1,16 @@
+{
+  "serve": {
+    "models": {
+      "my-llm": {
+        "model": "QWEN3_4B_INST_Q4",
+        "default": true,
+        "preload": true,
+        "config": { "ctx_size": 4096 }
+      }
+    }
+  },
+  "marketplace": {
+    "name": "my-provider",
+    "taskTypes": 1
+  }
+}

@@ -1,0 +1,6 @@
+allowBuilds:
+  bufferutil: true
+  esbuild: true
+  utf-8-validate: true
+patchedDependencies:
+  yargs@16.2.0: patches/yargs@16.2.0.patch

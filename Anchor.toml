@@ -1,0 +1,21 @@
+[toolchain]
+package_manager = "yarn"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+qvac_marketplace = "6rbgdrQdxziVC25kt1Xmtz36ApiLdUVGpdyDcssmgoec"
+
+[programs.devnet]
+qvac_marketplace = "6rbgdrQdxziVC25kt1Xmtz36ApiLdUVGpdyDcssmgoec"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn ts-mocha -p tsconfig.json 'tests/**/*.ts' --timeout 60000"
+
+[hooks]

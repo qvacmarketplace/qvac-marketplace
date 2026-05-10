@@ -1,0 +1,15 @@
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+deleted file mode 100644
+index ebc3b22fe826e5d08a3c592fbfbb611c28c21316..0000000000000000000000000000000000000000
+diff --git a/package.json b/package.json
+index 428ead2974fedf467c2dfee36ca3a410664c2de7..599b9982a72e53ba84f2b92bfc414c68481bd9e0 100644
+--- a/package.json
++++ b/package.json
+@@ -23,7 +23,6 @@
+       "./yargs"
+     ]
+   },
+-  "type": "module",
+   "module": "./index.mjs",
+   "contributors": [
+     {
