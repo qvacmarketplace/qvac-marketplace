@@ -4,7 +4,7 @@
   "type": "module",
   "description": "QVAC P2P Bridge — WebSocket server connecting browser to QVAC providers",
   "scripts": {
-    "start": "node --env-file-if-exists=.env node_modules/tsx/dist/cli.mjs bridge.js"
+    "start": "node --env-file-if-exists=.env node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.json bridge.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

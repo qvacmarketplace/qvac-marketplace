@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env node_modules/tsx/dist/cli.mjs provider.js",
+    "start": "node --env-file-if-exists=.env node_modules/tsx/dist/cli.mjs --tsconfig tsconfig.json provider.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
