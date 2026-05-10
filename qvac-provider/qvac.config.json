@@ -11,6 +11,7 @@
   },
   "marketplace": {
     "name": "my-provider",
-    "taskTypes": 1
+    "taskTypes": 1,
+    "pricePerRequest": 10000
   }
 }

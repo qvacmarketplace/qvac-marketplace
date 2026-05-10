@@ -33,6 +33,15 @@
     "bare-stream": "^2.13.1",
     "bare-subprocess": "^6.0.0",
     "bare-zlib": "^1.3.3",
+    "compact-encoding": "^3.0.1",
+    "corestore": "^7.9.2",
+    "events": "^3.3.0",
+    "hyperdb": "^6.7.0",
+    "hyperdrive": "^13.3.2",
+    "hyperswarm": "^4.17.0",
+    "llm-splitter": "^0.2.0",
+    "pear-pipe": "^1.0.6",
+    "tar-stream": "^3.2.0",
     "tsx": "^4.21.0"
   }
 }
