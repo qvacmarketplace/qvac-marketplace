@@ -15,7 +15,7 @@ import {
   partiallySignTransactionMessageWithSigners,
   sendAndConfirmTransactionFactory,
 } from "@solana/kit";
-import * as generatedClient from "./clients/js/src/generated/index.js";
+import generatedClient from "../clients/js/src/generated/index.js";
 const {
   getCreateJobInstructionAsync,
   getConsumerConfirmInstruction,
