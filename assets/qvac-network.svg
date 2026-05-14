@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240" preserveAspectRatio="xMidYMid meet" role="img" aria-label="QVAC Marketplace — peer-to-peer network animation">
+  <defs>
+    <radialGradient id="haloG" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#00e87b" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#00e87b" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#00e87b" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="haloP" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"  stop-color="#9945FF" stop-opacity="0.45" />
+      <stop offset="60%" stop-color="#9945FF" stop-opacity="0.10" />
+      <stop offset="100%" stop-color="#9945FF" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%"  stop-color="#06080f" stop-opacity="0" />
+      <stop offset="100%" stop-color="#06080f" stop-opacity="0.6" />
+    </radialGradient>
+    <style>
+      .bg     { fill: #06080f; }
+      .gridln { stroke: #14202e; stroke-width: 0.5; opacity: 0.55; }
+      .node-g { fill: #00e87b; }
+      .node-p { fill: #9945FF; }
+      .glow-g { fill: url(#haloG); }
+      .glow-p { fill: url(#haloP); }
+      .edge   { stroke-width: 0.9; fill: none; }
+      .edge-g { stroke: #00e87b; }
+      .edge-p { stroke: #9945FF; }
+
+      @keyframes pulse  { 0%,100% { opacity: 0.08; } 50% { opacity: 0.55; } }
+      @keyframes pulse2 { 0%,100% { opacity: 0.04; } 50% { opacity: 0.40; } }
+      @keyframes breath { 0%,100% { transform: scale(1);    opacity: 0.6; }
+                          50%      { transform: scale(1.35); opacity: 1;   } }
+      @keyframes halo   { 0%,100% { transform: scale(0.9); opacity: 0.6; }
+                          50%      { transform: scale(1.2); opacity: 1;   } }
+
+      .e1 { animation: pulse  4.0s ease-in-out infinite; }
+      .e2 { animation: pulse  4.5s ease-in-out infinite; animation-delay: 0.4s; }
+      .e3 { animation: pulse2 5.0s ease-in-out infinite; animation-delay: 0.8s; }
+      .e4 { animation: pulse  4.2s ease-in-out infinite; animation-delay: 1.2s; }
+      .e5 { animation: pulse2 5.5s ease-in-out infinite; animation-delay: 1.6s; }
+      .e6 { animation: pulse  3.8s ease-in-out infinite; animation-delay: 2.0s; }
+      .e7 { animation: pulse2 4.6s ease-in-out infinite; animation-delay: 2.4s; }
+      .e8 { animation: pulse  4.8s ease-in-out infinite; animation-delay: 0.2s; }
+      .e9 { animation: pulse2 5.2s ease-in-out infinite; animation-delay: 1.0s; }
+      .e10{ animation: pulse  4.4s ease-in-out infinite; animation-delay: 1.8s; }
+      .e11{ animation: pulse2 5.8s ease-in-out infinite; animation-delay: 0.6s; }
+      .e12{ animation: pulse  4.0s ease-in-out infinite; animation-delay: 2.6s; }
+
+      .n  { transform-box: fill-box; transform-origin: center; animation: breath 3.6s ease-in-out infinite; }
+      .n1 { animation-delay: 0.0s; }
+      .n2 { animation-delay: 0.5s; }
+      .n3 { animation-delay: 1.0s; }
+      .n4 { animation-delay: 1.5s; }
+      .n5 { animation-delay: 2.0s; }
+      .n6 { animation-delay: 2.5s; }
+      .n7 { animation-delay: 0.3s; }
+      .n8 { animation-delay: 1.3s; }
+      .n9 { animation-delay: 2.3s; }
+      .n10{ animation-delay: 0.8s; }
+      .n11{ animation-delay: 1.8s; }
+      .n12{ animation-delay: 0.6s; }
+      .n13{ animation-delay: 1.6s; }
+      .n14{ animation-delay: 2.6s; }
+
+      .h  { transform-box: fill-box; transform-origin: center; animation: halo 3.6s ease-in-out infinite; }
+
+      @media (prefers-reduced-motion: reduce) {
+        .e1,.e2,.e3,.e4,.e5,.e6,.e7,.e8,.e9,.e10,.e11,.e12,.n,.h { animation: none; opacity: 0.4; }
+      }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect class="bg" width="1200" height="240" />
+
+  <!-- faint grid -->
+  <g class="gridln">
+    <line x1="0"   y1="60"  x2="1200" y2="60"  />
+    <line x1="0"   y1="120" x2="1200" y2="120" />
+    <line x1="0"   y1="180" x2="1200" y2="180" />
+    <line x1="200" y1="0"   x2="200"  y2="240" />
+    <line x1="400" y1="0"   x2="400"  y2="240" />
+    <line x1="600" y1="0"   x2="600"  y2="240" />
+    <line x1="800" y1="0"   x2="800"  y2="240" />
+    <line x1="1000" y1="0"  x2="1000" y2="240" />
+  </g>
+
+  <!-- edges (drawn before nodes so nodes sit on top) -->
+  <g>
+    <line class="edge edge-g e1"  x1="80"   y1="60"  x2="240"  y2="140" />
+    <line class="edge edge-p e2"  x1="240"  y1="140" x2="170"  y2="200" />
+    <line class="edge edge-g e3"  x1="240"  y1="140" x2="400"  y2="80"  />
+    <line class="edge edge-p e4"  x1="400"  y1="80"  x2="350"  y2="180" />
+    <line class="edge edge-g e5"  x1="400"  y1="80"  x2="560"  y2="130" />
+    <line class="edge edge-p e6"  x1="350"  y1="180" x2="560"  y2="130" />
+    <line class="edge edge-g e7"  x1="560"  y1="130" x2="710"  y2="70"  />
+    <line class="edge edge-p e8"  x1="560"  y1="130" x2="700"  y2="190" />
+    <line class="edge edge-g e9"  x1="710"  y1="70"  x2="860"  y2="120" />
+    <line class="edge edge-p e10" x1="700"  y1="190" x2="860"  y2="120" />
+    <line class="edge edge-g e11" x1="860"  y1="120" x2="1020" y2="60"  />
+    <line class="edge edge-p e12" x1="860"  y1="120" x2="1040" y2="180" />
+    <line class="edge edge-g e1"  x1="1020" y1="60"  x2="1140" y2="120" />
+    <line class="edge edge-p e2"  x1="1040" y1="180" x2="1140" y2="120" />
+    <line class="edge edge-g e6"  x1="80"   y1="60"  x2="170"  y2="200" />
+    <line class="edge edge-p e9"  x1="400"  y1="80"  x2="710"  y2="70"  />
+    <line class="edge edge-g e12" x1="350"  y1="180" x2="700"  y2="190" />
+    <line class="edge edge-p e3"  x1="710"  y1="70"  x2="1020" y2="60"  />
+    <line class="edge edge-g e10" x1="700"  y1="190" x2="1040" y2="180" />
+  </g>
+
+  <!-- node halos -->
+  <g>
+    <circle class="glow-g h n1"  cx="80"   cy="60"  r="22" />
+    <circle class="glow-p h n2"  cx="240"  cy="140" r="22" />
+    <circle class="glow-p h n3"  cx="170"  cy="200" r="18" />
+    <circle class="glow-g h n4"  cx="400"  cy="80"  r="22" />
+    <circle class="glow-p h n5"  cx="350"  cy="180" r="20" />
+    <circle class="glow-g h n6"  cx="560"  cy="130" r="22" />
+    <circle class="glow-g h n7"  cx="710"  cy="70"  r="22" />
+    <circle class="glow-p h n8"  cx="700"  cy="190" r="20" />
+    <circle class="glow-g h n9"  cx="860"  cy="120" r="22" />
+    <circle class="glow-g h n10" cx="1020" cy="60"  r="22" />
+    <circle class="glow-p h n11" cx="1040" cy="180" r="20" />
+    <circle class="glow-g h n12" cx="1140" cy="120" r="22" />
+  </g>
+
+  <!-- node dots -->
+  <g>
+    <circle class="node-g n n1"  cx="80"   cy="60"  r="4" />
+    <circle class="node-p n n2"  cx="240"  cy="140" r="4" />
+    <circle class="node-p n n3"  cx="170"  cy="200" r="3" />
+    <circle class="node-g n n4"  cx="400"  cy="80"  r="4" />
+    <circle class="node-p n n5"  cx="350"  cy="180" r="3.5" />
+    <circle class="node-g n n6"  cx="560"  cy="130" r="4.5" />
+    <circle class="node-g n n7"  cx="710"  cy="70"  r="4" />
+    <circle class="node-p n n8"  cx="700"  cy="190" r="3.5" />
+    <circle class="node-g n n9"  cx="860"  cy="120" r="4" />
+    <circle class="node-g n n10" cx="1020" cy="60"  r="4" />
+    <circle class="node-p n n11" cx="1040" cy="180" r="3.5" />
+    <circle class="node-g n n12" cx="1140" cy="120" r="4" />
+  </g>
+
+  <!-- subtle vignette -->
+  <rect width="1200" height="240" fill="url(#vignette)" />
+</svg>

@@ -1,22 +1,36 @@
-# QVAC Bridge
+<h1 align="center">QVAC Bridge</h1>
 
-Local WebSocket bridge that connects your browser to the QVAC P2P network. The browser can't talk to the Solana RPC directly with your Phantom-held key, can't open Hyperswarm sockets, and definitely shouldn't host your private keypair — so the bridge does all three on your machine, then exposes a tightly-scoped local WebSocket the marketplace UI uses.
+<p align="center">
+  Local WebSocket bridge that connects your browser to the QVAC P2P network.<br/>
+  The browser can't speak Holepunch DHT or hold private keys — the bridge does both safely, on your machine.
+</p>
 
-```
-       Browser (qvacmarketplace.io)
-                │
-                │  WebSocket  ws://127.0.0.1:3000
-                ▼
-       ┌──────────────────┐        Solana devnet
-       │   QVAC Bridge    │──────────────────────────►  create_job, consumer_confirm, refund_job
-       │  (this process)  │
-       │                  │        Holepunch HyperDHT
-       └──────────────────┘──────────────────────────►  Quote channel + encrypted inference stream
-```
+<p align="center">
+  <img src="https://img.shields.io/badge/Runs-locally-blueviolet" alt="Runs locally" />
+  <img src="https://img.shields.io/badge/Port-127.0.0.1%3A3000-2196f3" alt="127.0.0.1:3000" />
+  <img src="https://img.shields.io/badge/Node.js-%E2%89%A5%2022.17-339933?logo=node.js&logoColor=white" alt="Node.js ≥ 22.17" />
+  <img src="https://img.shields.io/badge/Solana-Devnet-9945FF?logo=solana&logoColor=white" alt="Solana devnet" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" />
+</p>
 
 ---
 
-## Quick start
+## 🤔 What is the bridge?
+
+Think of it as **MetaMask for inference jobs** — a small local daemon that extends what your browser can safely do:
+
+| Browser cannot | The bridge can |
+|---|---|
+| Open Hyperswarm/DHT sockets | ✅ Maintains a long-lived DHT connection |
+| Build and submit Solana transactions reliably | ✅ Uses `@solana/kit` with full retry/confirm logic |
+| Hold private keypair files | ✅ (Optional) Reads a local keypair for demo mode |
+| Run independently of an open tab | ✅ Stays alive between page reloads |
+
+The bridge listens on `127.0.0.1:3000` only. The marketplace UI in your browser opens a WebSocket to it; the bridge does the rest.
+
+---
+
+## 🚀 Quick start
 
 ```bash
 git clone https://github.com/qvacmarketplace/qvac-marketplace
@@ -28,9 +42,15 @@ npm start
 
 Then open [www.qvacmarketplace.io](https://www.qvacmarketplace.io) — the bridge pill in the top-right turns green within a second.
 
+> 💡 **Mac / npm users:** if you see an `ERESOLVE` peer-dependency error on install, run:
+> ```bash
+> npm install --legacy-peer-deps
+> ```
+> This is a known conflict between `bare-fetch` versions inside `@qvac/sdk` and is safe to bypass.
+
 ---
 
-## Requirements
+## 📋 Requirements
 
 - **Node.js ≥ 22.17** — the QVAC SDK fails silently on older versions. Check with `node --version`.
 - **A Solana devnet wallet with SOL.** Two ways to provide it:
@@ -39,35 +59,21 @@ Then open [www.qvacmarketplace.io](https://www.qvacmarketplace.io) — the bridg
 
 ---
 
-## Setup
-
-### 1. Install
-
-```bash
-git clone https://github.com/qvacmarketplace/qvac-marketplace
-cd qvac-marketplace/qvac-bridge
-npm install
-```
-
-> **Mac / npm users:** if you see an `ERESOLVE` peer dependency error on install, run:
-> ```bash
-> npm install --legacy-peer-deps
-> ```
-> This is a known conflict between `bare-fetch` versions in `@qvac/sdk` and is safe to bypass.
-
-### 2. Configure
-
-```bash
-cp .env.example .env
-```
+## ⚙️ Configuration
 
 ```env
-# Solana RPC endpoint
+# .env
 SOLANA_RPC=https://api.devnet.solana.com
 
 # Demo mode only — leave commented out if you'll use Phantom
 # SOLANA_KEYPAIR_PATH=/home/you/.config/solana/consumer.json
 ```
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `SOLANA_RPC` | No | RPC endpoint (default `http://localhost:8899`) |
+| `SOLANA_KEYPAIR_PATH` | No | If set → demo mode auto-signing; if unset → Phantom-only |
+| `SOLANA_WS_URL` | No | Override the auto-derived `wss://` URL for subscriptions |
 
 For demo mode, generate and fund the keypair:
 
@@ -76,93 +82,143 @@ solana-keygen new -o ~/.config/solana/consumer.json
 solana airdrop 2 ~/.config/solana/consumer.json --url devnet
 ```
 
-### 3. Start
+---
 
-```bash
-npm start
+## 🔄 Full job lifecycle
+
+Every inference request from the browser triggers this five-phase choreography:
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant Br as Bridge<br/>(localhost:3000)
+  participant P as Provider<br/>(Hyperswarm)
+  participant S as Solana
+
+  B->>Br: prompt {messages, providerAuthority}
+  Br->>S: fetchMaybeProvider(authority)
+  S-->>Br: qvac_peer_id
+
+  Note over Br,P: ① Quote
+  Br->>P: quote_request
+  P-->>Br: signed quote (Ed25519)
+
+  Note over Br,S: ② Create Job
+  Br->>B: sign_request (escrow tx)
+  B-->>Br: sign_response (signed)
+  Br->>S: create_job
+  S-->>Br: jobPda
+  Br->>P: job_ack {jobPda}
+
+  Note over Br,P: ③ Inference
+  P-->>Br: token stream (encrypted)
+  Br-->>B: token, token, … done
+
+  Note over Br,P: ④ Provider Done
+  Br->>P: response_observed
+  P->>S: provider_complete (response_hash)
+  Br->>S: poll job until ProviderDone
+
+  Note over Br,S: ⑤ Confirm
+  Br->>B: sign_request (confirm tx)
+  B-->>Br: sign_response
+  Br->>S: consumer_confirm
+  Br-->>B: settled {txSignature, amount}
 ```
 
-You should see something like:
-
-```
-  QVAC Bridge v1.0
-  ─────────────────────────────────
-  WebSocket : ws://127.0.0.1:3000
-  Security  : localhost only
-  Consumer wallet: 6TCKACK…   ← only if SOLANA_KEYPAIR_PATH is set
-  Waiting for browser connection...
-```
-
-### 4. Open the marketplace
-
-Go to [www.qvacmarketplace.io](https://www.qvacmarketplace.io). The bridge pill in the top-right turns green when the WebSocket handshake completes.
+In demo mode, the two `sign_request`/`sign_response` round-trips are replaced by the bridge signing transactions directly with the local keypair — no Phantom popups.
 
 ---
 
-## Phantom signing flow
+## 💬 WebSocket message protocol
 
-```
-  Browser                      Bridge                       Solana
-   │                            │                            │
-   │ ── prompt ─────────────────▶                            │
-   │                            │ ── quote_request ──▶ Provider
-   │                            │ ◀── signed quote ──         │
-   │                            │                            │
-   │ ◀── sign_request {tx} ─────                            │
-   │   ↓                        │                            │
-   │   Phantom popup            │                            │
-   │   "Approve in Phantom —    │                            │
-   │    Escrow 0.000010 SOL"    │                            │
-   │   ↓                        │                            │
-   │ ── sign_response ──────────▶                            │
-   │                            │ ── create_job (signed) ────▶
-   │                            │                            │
-   │  P2P inference (encrypted) ◀────────── tokens ─────────  Provider
-   │                            │                            │
-   │ ◀── sign_request {tx} ─────                            │
-   │   "Release 0.000010 SOL"   │                            │
-   │ ── sign_response ──────────▶                            │
-   │                            │ ── consumer_confirm ──────▶
-   │ ◀── settled ───────────────                            │
-```
+The browser connects to `ws://127.0.0.1:3000`. All messages are JSON with a `type` field.
 
-Two prompts per inference. Both transactions are built locally by the bridge — Phantom signs raw transaction bytes; it never sees a private key from the bridge.
+### 📤 Browser → Bridge
+
+| `type` | Payload | When |
+|---|---|---|
+| `prompt`        | `{ messages, providerAuthority, providerPublicKey?, options? }` | Start a new inference job |
+| `sign_response` | `{ txId, signedTxBase64 }`                                     | Returns a Phantom-signed tx requested via `sign_request` |
+| `sign_rejected` | `{ txId }`                                                     | User cancelled the Phantom popup |
+| `refund`        | `{ jobPda }`                                                   | Reclaim escrow (only after `JOB_TIMEOUT` and only if `Pending`) |
+| `disconnect`    | `{}`                                                           | Close the active P2P connection |
+| `check_status`  | `{ authorities: [pubkey, …] }`                                 | DHT-ping each provider for online status |
+
+### 📥 Bridge → Browser
+
+| `type` | Payload | When |
+|---|---|---|
+| `connected`             | `{ providerAuthority }`              | P2P channel to provider established |
+| `status`                | `{ stage, text }`                    | Progress updates — stages: `quote`, `signing`, `job`, `connecting`, `generating`, `settling` |
+| `token`                 | `{ token }`                          | One streamed inference token |
+| `done`                  | `{ stats }`                          | End of token stream (before settlement) |
+| `sign_request`          | `{ txId, txBase64, description }`    | Ask the browser to sign a transaction in Phantom |
+| `settled`               | `{ txSignature, amount }`            | Job confirmed — SOL released to provider |
+| `refunded`              | `{ txSignature, jobPda }`            | Refund transaction landed |
+| `provider_disconnected` | `{}`                                 | P2P socket closed (provider went offline or `disconnect` was sent) |
+| `status_results`        | `{ results: [{ authority, online, latency? }, …] }` | Reply to `check_status` |
+| `error`                 | `{ message }`                        | Anything went wrong; user-facing error string |
 
 ---
 
-## Demo mode (no Phantom)
+## 🔐 Phantom vs demo mode
 
-If `SOLANA_KEYPAIR_PATH` is set in `.env`, the bridge signs and submits transactions automatically using that keypair. There is no wallet popup, no user confirmation per job. Caveat:
+<details>
+<summary><b>👻 Phantom mode (recommended)</b></summary>
 
-- A **per-job cap of 0.1 SOL** rejects quotes above that amount, so a malicious provider can't drain your wallet via an inflated quote.
-- The keypair file is on disk — protect it with file permissions and keep it out of version control.
+The bridge builds the transaction (escrow at phase ②, release at phase ⑤), sends the raw bytes to the browser via `sign_request`, the browser shows Phantom's approval popup, Phantom signs, the browser returns the signed bytes via `sign_response`, the bridge submits.
+
+**Your private key never enters the bridge process.** The bridge only ever sees a fully-formed signed transaction it can broadcast — it cannot create unauthorized transactions with your key.
+
+Two popups per inference:
+1. **Escrow** — "Escrow 0.000010 SOL" — locks SOL in a Job PDA on Solana
+2. **Release** — "Release 0.000010 SOL" — pays the provider and closes the Job PDA
+
+Both are the same SOL moving in two steps, not two separate charges. Total per request = quoted price + two small network fees.
+
+</details>
+
+<details>
+<summary><b>🤖 Demo mode (local automation)</b></summary>
+
+If `SOLANA_KEYPAIR_PATH` is set in `.env`, the bridge auto-signs both transactions using that keypair. No Phantom popup. Useful for testing, demos, and headless automation.
+
+Guardrails:
+- **Per-job 0.1 SOL cap.** A malicious provider quoting an inflated price gets `quote_rejected` instead of draining your wallet.
+- **Keypair file on disk.** Protect it with file permissions and keep it out of version control.
 
 Phantom mode is recommended for everything except local automation.
 
----
-
-## Security
-
-- **Bind address.** The bridge listens on `127.0.0.1:3000` only — unreachable from your LAN, your Wi-Fi, or the internet.
-- **Origin allow-list.** Only WebSocket connections from `qvacmarketplace.io` (production) or `localhost:3001` (local dev) are accepted. Other websites cannot CSRF-attack the bridge by opening a sneaky WebSocket.
-- **Phantom mode.** Your private key never enters the bridge process — Phantom only emits a signed transaction.
-- **Demo mode.** Keypair stays on disk in the file you specify. Bridge reads it once at startup. The 0.1 SOL per-job cap protects against malicious quotes.
-- **Buffer caps.** Hyperswarm sockets reject any single line over 64 KB to defend against memory-exhaustion DoS.
-- **Crypto-random IDs.** Session, transaction, and quote IDs are generated with `crypto.randomBytes` rather than `Math.random`.
+</details>
 
 ---
 
-## Operations
+## 🛡️ Security
 
-The bridge logs each session and transaction to stdout:
+- **Bind address.** Listens on `127.0.0.1:3000` only — unreachable from your LAN, your Wi-Fi, or the internet.
+- **Origin allow-list.** WebSocket connections rejected unless `Origin` is `qvacmarketplace.io` (production) or `localhost:3001` (dev). Other websites cannot CSRF the bridge.
+- **Phantom-mode key separation.** The browser holds the key, the bridge holds the network. Neither alone can spend funds.
+- **Demo-mode amount cap.** 0.1 SOL ceiling on auto-signed quotes (`MAX_DEMO_AMOUNT_LAMPORTS = 100_000_000`).
+- **Buffer caps.** Hyperswarm sockets reject any single line over 64 KB — prevents memory exhaustion DoS.
+- **Crypto-random IDs.** Session, transaction, and quote IDs are generated with `crypto.randomBytes`, not `Math.random()`.
+- **Rate limiting** *(on the provider side)*: quote channel caps 10 requests / 10 seconds per peer; over-limit → `quote_rejected`.
+- **Error scrubbing.** User-facing error messages are scrubbed before being sent to the browser — filesystem paths never leak.
+
+---
+
+## 🖥️ Operations
+
+The bridge logs each session and key transaction to stdout, prefixed with the 8-char session ID:
 
 ```
-  [F1084ED9] browser connected
-  [F1084ED9] qvacPeerId: a1b2c3d4e5f6789a…
-  [F1084ED9] quote: 10000 lamports, valid until 1747000600
-  [F1084ED9] job acked: J6wtAsnmESxV…
-  [F1084ED9] response complete
-  [F1084ED9] settled: 121uEmSfaqDTqiK6…
+[F1084ED9] browser connected
+[F1084ED9] qvacPeerId: a1b2c3d4e5f6789a…
+[F1084ED9] quote: 10000 lamports, valid until 1747000600
+[F1084ED9] job acked: J6wtAsnmESxV…
+[F1084ED9] response complete
+[F1084ED9] settled: 121uEmSfaqDTqiK6…
 ```
 
 For long-running deployments, use a process manager:
@@ -176,25 +232,78 @@ pm2 startup
 
 ---
 
-## Troubleshooting
+## 🩺 Troubleshooting
 
-**Bridge pill stays red ("Bridge not detected")**
-Make sure `npm start` is running. Check the terminal for an `EADDRINUSE` error — port 3000 may be taken by another process. Confirm `node --version` is ≥ 22.17.
+<details>
+<summary><b>"Bridge not detected" (red pill in the UI)</b></summary>
 
-**"Connection rejected — origin not allowed"**
-You're loading the marketplace UI from a non-allowlisted origin. Use the hosted site (`qvacmarketplace.io`) or the local dev server (`localhost:3001`).
+- Confirm `npm start` is running in this directory.
+- Check for `EADDRINUSE` in the terminal — port 3000 may be taken by another process.
+- Verify `node --version` is ≥ 22.17.
+- Browser opened from an HTTPS site? Then it can only connect via WSS, which the local bridge doesn't speak. Use the hosted site `qvacmarketplace.io` (which proxies correctly) or `localhost:3001` if running the webserver locally.
 
-**"Quote channel connect timeout"**
+</details>
+
+<details>
+<summary><b>"Connection rejected — origin not allowed"</b></summary>
+
+You loaded the marketplace UI from a non-allowlisted origin. Use the hosted site (`qvacmarketplace.io`) or the local dev server (`localhost:3001`).
+
+</details>
+
+<details>
+<summary><b>"Quote channel connect timeout"</b></summary>
+
 The provider's DHT announcement can take up to 15 seconds to propagate on devnet. Wait until the *provider's* terminal prints `Quote channel: open`, then retry.
 
-**"Provider quoted N lamports — exceeds demo-mode cap"**
-The provider asked for more than 0.1 SOL and you're in demo mode. Switch to Phantom (which prompts you per-tx) or pick a different provider.
+</details>
 
-**"Transaction rejected in Phantom"**
-You hit Cancel in the Phantom popup. Just send the message again.
+<details>
+<summary><b>"Provider quoted N lamports — exceeds demo-mode cap"</b></summary>
 
-**Phantom shows wrong network**
+The provider asked for more than 0.1 SOL and you're in demo mode. Switch to Phantom (per-tx approval) or pick a different provider.
+
+</details>
+
+<details>
+<summary><b>"Transaction rejected in Phantom"</b></summary>
+
+You hit Cancel in the Phantom popup. Send the message again.
+
+</details>
+
+<details>
+<summary><b>Phantom shows the wrong network</b></summary>
+
 Open Phantom → Settings → Developer Settings → enable Testnet Mode and select Devnet.
 
-**`SOL Insufficient lamports` errors mid-job**
+</details>
+
+<details>
+<summary><b>"Insufficient lamports" mid-job</b></summary>
+
 Top up your devnet balance. Click **Airdrop 1 SOL** in the marketplace UI (Phantom mode) or run `solana airdrop 2 <keypair> --url devnet` (demo mode).
+
+</details>
+
+---
+
+## 🛣️ Roadmap
+
+- **One-click installer** — a packaged binary (via `pkg` or similar) so consumers don't need to install Node.js or run `npm` themselves. Click → run → marketplace pill goes green.
+- **Native desktop app** — Electron or Tauri wrapper for status tray icon, system notifications, and auto-start.
+- **Mobile support** — currently impossible because mobile browsers can't reach a local WebSocket. A native mobile app with embedded P2P would solve this.
+
+---
+
+<p align="center">
+  <a href="https://www.qvacmarketplace.io">qvacmarketplace.io</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/qvacmarketplace/qvac-marketplace">GitHub</a>
+  &nbsp;·&nbsp;
+  <a href="../qvac-provider/README.md">Provider</a>
+  &nbsp;·&nbsp;
+  <a href="../programs/README.md">Anchor program</a>
+  &nbsp;·&nbsp;
+  <a href="../clients/README.md">TypeScript client</a>
+</p>
